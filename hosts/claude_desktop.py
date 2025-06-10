@@ -11,8 +11,6 @@ from mcp.server.fastmcp.utilities.logging import get_logger
 
 logger = get_logger(__name__)
 
-MCP_PACKAGE = "mcp[cli]"
-
 
 def get_venv_path() -> str:
     """Get the full path to the venv executable."""
@@ -52,7 +50,7 @@ def update_claude_config(
     """
     config_dir = get_claude_config_path()
     venv_path = get_venv_path()
-    print(config_dir)
+
     if not config_dir:
         raise RuntimeError(
             "Claude Desktop config directory not found. Please ensure Claude Desktop"
@@ -90,11 +88,21 @@ def update_claude_config(
             else:
                 env_vars = existing_env
 
-        # Build uv run command
-        args = ["run"]
+        # Dynamically find the path to main.py
+        main_py_path = Path(__file__).parent.parent / "main.py"
+
+        if not main_py_path.exists():
+            logger.error("main.py not found in the expected directory.")
+            return False
+
+        # Build the command and args for the server
+        args = [str(main_py_path)]  # Dynamic path to main.py
+
+        if with_editable:
+            args.extend(["--with-editable", str(with_editable)])
 
         # Collect all packages in a set to deduplicate
-        packages = {MCP_PACKAGE}
+        packages = {"fastmcp", "mcp-kakao-map"}
         if with_packages:
             packages.update(pkg for pkg in with_packages if pkg)
 
@@ -102,11 +110,7 @@ def update_claude_config(
         for pkg in sorted(packages):
             args.extend(["--with", pkg])
 
-        if with_editable:
-            args.extend(["--with-editable", str(with_editable)])
-
         # Convert file path to absolute before adding to command
-        # Split off any :object suffix first
         server_config: dict[str, Any] = {"command": venv_path, "args": args}
 
         # Add environment variables if specified

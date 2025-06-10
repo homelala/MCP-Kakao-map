@@ -5,21 +5,21 @@ from config import REST_API_KEY
 
 mcp = FastMCP("KAKAO MAP MCP")
 
-API_ENDPOINT = "https://dapi.kakao.com/v2"
+API_ENDPOINT = "https://dapi.kakao.com/v2/local"
 api_headers = {
     "Authorization": f"KakaoAK {REST_API_KEY}"
 }
 
-@mcp.tool(name="search location", description="search location")
+@mcp.tool(name="search_location", description="search_location")
 async def search_location(query:str, page=1, size=15, sort="accuracy"):
     async with httpx.AsyncClient() as client:
         response = await client.get(
-            f"{API_ENDPOINT}/search/keyword",
+            f"{API_ENDPOINT}/search/keyword.json",
             params={
                 "query": query,
-                "page":page,
-                "size":size,
-                "sort":sort,
+                "page": page,
+                "size": size,
+                "sort": sort,
             },
             headers=api_headers,
         )
@@ -28,4 +28,4 @@ async def search_location(query:str, page=1, size=15, sort="accuracy"):
 
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport='stdio')
+    mcp.run()
