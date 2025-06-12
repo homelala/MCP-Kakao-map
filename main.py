@@ -2,7 +2,6 @@ import httpx
 from fastmcp import FastMCP
 
 from config import REST_API_KEY
-from hosts.category import Category
 
 mcp = FastMCP("KAKAO MAP MCP")
 
@@ -30,19 +29,17 @@ async def search_location(query:str, x,y,page=1, size=15, sort="accuracy"):
         return response.text
 
 @mcp.tool(name="search_keyword", description="search_keyword")
-async def search_location(category_name:str, x,y,radius=10, page=1, size=15, sort="accuracy"):
+async def search_keyword(category_group_code:str, x,y,radius=10, page=1, sort="accuracy"):
     async with httpx.AsyncClient() as client:
-        category_code = Category.get_category_code(category_name)
 
         response = await client.get(
             f"{API_ENDPOINT}/search/category.json",
             params={
-                "category_group_code": category_code,
+                "category_group_code": category_group_code,
                 "x":x,
                 "y":y,
                 "radius":radius,
                 "page": page,
-                "size": size,
                 "sort": sort,
             },
             headers=api_headers,
